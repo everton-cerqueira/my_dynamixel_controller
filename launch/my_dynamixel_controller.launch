@@ -1,0 +1,5 @@
+<!-- -*- mode: XML -*- -->
+<launch>
+<node pkg="my_dynamixel_controller" type="dynamixel_publisher" name="topic_publisher1" output="screen"/>
+<node pkg="my_dynamixel_controller" type="dynamixel_subscriber" name="topic_subscriber1" output="screen"/> 
+</launch>
