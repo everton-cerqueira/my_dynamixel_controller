@@ -104,7 +104,7 @@ void motor_command(void)
    break;
   
     case 2:
-     if(motor_state[1] - motor_position[0] <= 0.01)
+     if(motor_position[0] - motor_state[1] <= 0.01)
      {
       //Tira foto
       Estado = 3;
@@ -120,7 +120,7 @@ void motor_command(void)
    break;
 
    case 4:
-     if(motor_state[1] - motor_position[1] <= 0.01) 
+     if(motor_position[1] - motor_state[1] <= 0.01) 
       {
       //Tira foto
       Estado = 5;
@@ -135,7 +135,7 @@ void motor_command(void)
   break;
 
   case 6:
-     if(motor_state[1] - motor_position[2] <= 0.01) 
+     if(motor_position[2] - motor_state[1] <= 0.01) 
      {
      //Tira foto
       Estado = 7;
@@ -150,7 +150,7 @@ void motor_command(void)
   break;
 
   case 8:
-     if(motor_state[1] - motor_position[3] <= 0.01) 
+     if(motor_position[3] - motor_state[1] <= 0.01) 
      {
      //Tira foto
       Estado = 9;
@@ -165,7 +165,7 @@ void motor_command(void)
   break;
 
   case 10:
-     if(motor_state[1] - motor_position[4] <= 0.01) 
+     if(motor_position[4] - motor_state[1] <= 0.01) 
      {
      //Tira foto
       Estado = 1;
