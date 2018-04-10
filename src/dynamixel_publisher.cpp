@@ -22,16 +22,11 @@ void msgCallback(const dynamixel_msgs::JointState::ConstPtr& msg)
    motor_state[3] = msg->load;
    moving = msg->is_moving;   
 
-   //ROS_INFO("Motor Ids = %i", msg->motor_ids[0]);
-   //ROS_INFO("Motor Temp = %i", msg->motor_temps[0]); 
+
    ROS_INFO("Goal Position = %f", msg->goal_pos);	 
    ROS_INFO("Current Position = %f", msg->current_pos); 
    ROS_INFO("Error = %f", msg->error); 
-   //ROS_INFO("Velocity = %f", msg->velocity);
-   //ROS_INFO("Load = %f", msg->load);
    ROS_INFO("Moving = %i", msg->is_moving);
-
-   //ROS_INFO("Motor Goal Position = %f", motor_state[0]);
 }  
 
 
