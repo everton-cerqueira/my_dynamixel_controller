@@ -53,8 +53,29 @@ int main(int argc, char **argv)
   //ros::spinOnce();
   
    while (ros::ok()){
-   motor_command();	
+   motor_command();
+   //msg.stamp = ros::Time::now(); // Save current time in the stamp of 'msg'
+   //msg.data = count;		
+   //ROS_INFO("send msg = %f", msg.data); 	
+  
+   //dynamixel_publisher.publish(msg); 	
    loop_rate.sleep();		  
+
+  /* switch(Estado){
+   case 1:
+    if(count < 6.28) count += 3.14/5;
+    else Estado = 2;
+   break;
+
+   case 2:
+    if(count > 0) count-= 3.14/5;
+    else Estado = 1;
+   break; 
+
+   default:
+    Estado = 1;
+   break;
+  }*/
    ros::spinOnce();
  }
    
