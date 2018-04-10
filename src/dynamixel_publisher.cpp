@@ -16,6 +16,7 @@
 #define PI 2
 #define PI_HALF 3
 #define TWO_PI 4
+#define ERROR_POS 0.01
 
 void motor_command(void);
 void motor_init(float pos1, float pos2, float pos3, float pos4, float pos5);
@@ -26,8 +27,8 @@ struct Motor{
  bool moving;
 }MX28;
 
-void motor_init(float pos1, float pos2, float pos3, float pos4, float pos5){
- 
+void motor_init(float pos1, float pos2, float pos3, float pos4, float pos5)
+{
  MX28.Estado = 1; 
  MX28.count = 0;
  MX28.motor_position[0] = pos1;
@@ -75,10 +76,10 @@ int main(int argc, char **argv)
   	
   //ros::spinOnce();
   
-   while (ros::ok()){
-    motor_command();	
+   while (ros::ok()){	
     loop_rate.sleep();		  
     ros::spinOnce();
+    motor_command();
    }
    
    return 0;
@@ -106,7 +107,7 @@ void motor_command(void)
    break;
   
     case 2:
-     if(MX28.motor_position[START] - MX28.motor_state[CURRENT_POS] <= 0.01)
+     if(MX28.motor_position[START] - MX28.motor_state[CURRENT_POS] <= ERROR_POS)
      {
       //Tira foto
       MX28.Estado = 3;
@@ -122,7 +123,7 @@ void motor_command(void)
    break;
 
    case 4: 
-    if(MX28.motor_position[HALF_PI] - MX28.motor_state[CURRENT_POS] <= 0.01) 
+    if(MX28.motor_position[HALF_PI] - MX28.motor_state[CURRENT_POS] <= ERROR_POS) 
       {
       //Tira foto
       MX28.Estado = 5;
@@ -137,7 +138,7 @@ void motor_command(void)
   break;
 
   case 6:   
-    if(MX28.motor_position[PI] - MX28.motor_state[CURRENT_POS] <= 0.01) 
+    if(MX28.motor_position[PI] - MX28.motor_state[CURRENT_POS] <= ERROR_POS) 
      {
      //Tira foto
       MX28.Estado = 7;
@@ -152,7 +153,7 @@ void motor_command(void)
   break;
 
   case 8:    
-   if(MX28.motor_position[PI_HALF] - MX28.motor_state[CURRENT_POS] <= 0.01) 
+   if(MX28.motor_position[PI_HALF] - MX28.motor_state[CURRENT_POS] <= ERROR_POS) 
      {
      //Tira foto
       MX28.Estado = 9;
@@ -167,7 +168,7 @@ void motor_command(void)
   break;
 
   case 10:
-    if(MX28.motor_position[TWO_PI] - MX28.motor_state[CURRENT_POS] <= 0.01) 
+    if(MX28.motor_position[TWO_PI] - MX28.motor_state[CURRENT_POS] <= ERROR_POS) 
      {
      //Tira foto
       MX28.Estado = 1;
