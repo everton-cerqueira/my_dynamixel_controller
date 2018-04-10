@@ -6,20 +6,31 @@
 #include "my_dynamixel_controller/MsgDynamixel.h"
 #include "dynamixel_msgs/JointState.h"
 
+#define GOAL_POS 0
+#define CURRENT_POS 1
+#define ERROR 2
+#define LOAD 3
+
+#define START 0
+#define ONE 1
+#define TWO 2
+#define THREE 3
+#define FOUR 4
+
+
 void motor_command(void);
 
-float motor_state[4];
-float count = 0;
+float motor_state[4], count = 0, motor_position[5] = {0,1.57,3.14,4.71,6.28}; 
 int Estado = 1;
 bool moving;
-float motor_position[5] = {0,1.57,3.14,4.71,6.28}; 
+
 
 void msgCallback(const dynamixel_msgs::JointState::ConstPtr& msg)
 {   
-   motor_state[0] = msg->goal_pos;
-   motor_state[1] = msg->current_pos;
-   motor_state[2] = msg->error;
-   motor_state[3] = msg->load;
+   motor_state[GOAL_POS] = msg->goal_pos;
+   motor_state[CURRENT_POS] = msg->current_pos;
+   motor_state[ERROR] = msg->error;
+   motor_state[LOAD] = msg->load;
    moving = msg->is_moving;   
 
 
@@ -32,7 +43,7 @@ void msgCallback(const dynamixel_msgs::JointState::ConstPtr& msg)
 
 int main(int argc, char **argv)
 {
-   my_dynamixel_controller::MsgDynamixel msg;
+  //my_dynamixel_controller::MsgDynamixel msg;
   
   ros::init(argc, argv, "dynamixel_publisher");	
   ros::init(argc, argv, "dynamixel_subscriber");
@@ -48,12 +59,11 @@ int main(int argc, char **argv)
   //ros::spinOnce();
   
    while (ros::ok()){
-   motor_command();	
-   loop_rate.sleep();		  
-   ros::spinOnce();
- }
+    motor_command();	
+    loop_rate.sleep();		  
+    ros::spinOnce();
+   }
    
-
    return 0;
 }
 
@@ -62,23 +72,24 @@ int main(int argc, char **argv)
 void motor_command(void)
 {
   my_dynamixel_controller::MsgDynamixel msg;
+  
   ros::NodeHandle nh;	
-
+  
   ros::Publisher dynamixel_publisher = nh.advertise<my_dynamixel_controller::MsgDynamixel>("tilt_controller/command", 100); 
   ros::Subscriber dynamixel_subscriber = nh.subscribe("tilt_controller/state", 100, msgCallback);
-
+  
  
  switch(Estado)
  {
    case 1:
-    msg.data = motor_position[0]; 
+    msg.data = motor_position[START]; 
     dynamixel_publisher.publish(msg);
     ROS_INFO("send msg = %f", msg.data); 
     Estado = 2;
    break;
   
     case 2:
-     if(motor_position[0] - motor_state[1] <= 0.01)
+     if(motor_position[START] - motor_state[CURRENT_POS] <= 0.01)
      {
       //Tira foto
       Estado = 3;
@@ -87,14 +98,14 @@ void motor_command(void)
 
 
    case 3:
-    msg.data = motor_position[1]; 
+    msg.data = motor_position[ONE]; 
     dynamixel_publisher.publish(msg);
     ROS_INFO("send msg = %f", msg.data);
     Estado= 4;
    break;
 
-   case 4:
-     if(motor_position[1] - motor_state[1] <= 0.01) 
+   case 4: 
+    if(motor_position[ONE] - motor_state[CURRENT_POS] <= 0.01) 
       {
       //Tira foto
       Estado = 5;
@@ -102,14 +113,14 @@ void motor_command(void)
    break;
 
   case 5:
-    msg.data = motor_position[2]; 
+    msg.data = motor_position[TWO]; 
     dynamixel_publisher.publish(msg);
     ROS_INFO("send msg = %f", msg.data);
     Estado= 6;
   break;
 
-  case 6:
-     if(motor_position[2] - motor_state[1] <= 0.01) 
+  case 6:   
+    if(motor_position[TWO] - motor_state[CURRENT_POS] <= 0.01) 
      {
      //Tira foto
       Estado = 7;
@@ -117,14 +128,14 @@ void motor_command(void)
   break;
  
   case 7:
-    msg.data = motor_position[3]; 
+    msg.data = motor_position[THREE]; 
     dynamixel_publisher.publish(msg);
     ROS_INFO("send msg = %f", msg.data);
     Estado= 8;
   break;
 
-  case 8:
-     if(motor_position[3] - motor_state[1] <= 0.01) 
+  case 8:    
+   if(motor_position[THREE] - motor_state[CURRENT_POS] <= 0.01) 
      {
      //Tira foto
       Estado = 9;
@@ -132,21 +143,19 @@ void motor_command(void)
   break;
 
   case 9:
-    msg.data = motor_position[4]; 
+    msg.data = motor_position[FOUR]; 
     dynamixel_publisher.publish(msg);
     ROS_INFO("send msg = %f", msg.data);
     Estado= 10;
   break;
 
   case 10:
-     if(motor_position[4] - motor_state[1] <= 0.01) 
+    if(motor_position[FOUR] - motor_state[CURRENT_POS] <= 0.01) 
      {
      //Tira foto
       Estado = 1;
      }else Estado = 9;
   break;
-  
-
  }	
 
 } 
