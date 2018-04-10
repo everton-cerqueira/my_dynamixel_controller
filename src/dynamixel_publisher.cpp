@@ -60,7 +60,6 @@ int main(int argc, char **argv)
 {
   //my_dynamixel_controller::MsgDynamixel msg;
   
-  struct Motor mt; 
   motor_init(0,1.57,3.14,4.71,6.28);
 
   ros::init(argc, argv, "dynamixel_publisher");	
