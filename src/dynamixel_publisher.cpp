@@ -5,6 +5,7 @@
 
 #include "my_dynamixel_controller/MsgDynamixel.h"
 #include "dynamixel_msgs/JointState.h"
+#include "motor_cam_tutorial/image_cmd.h"
 
 #define GOAL_POS 0
 #define CURRENT_POS 1
@@ -18,7 +19,7 @@
 #define TWO_PI 4
 #define ERROR_POS 0.01
 
-void motor_command(void);
+void motor_command(motor_cam_tutorial::image_cmd service_request);
 void motor_init(float pos1, float pos2, float pos3, float pos4, float pos5);
 
 struct Motor{
@@ -70,6 +71,12 @@ int main(int argc, char **argv)
   ros::Publisher dynamixel_publisher = nh.advertise<my_dynamixel_controller::MsgDynamixel>("tilt_controller/command", 100); 
   ros::Subscriber dynamixel_subscriber = nh.subscribe("tilt_controller/state", 100, msgCallback);
   
+  motor_cam_tutorial::image_cmd service_request;
+  service_request.request.cmd = true;
+  service_request.request.angle = 0.0;
+  service_request.request.path = "./";
+
+  
   
   ros::Rate loop_rate(0.2); // Set the loop period (Hz)
   	
@@ -78,7 +85,7 @@ int main(int argc, char **argv)
    while (ros::ok()){	
     loop_rate.sleep();		  
     ros::spinOnce();
-    motor_command();
+    motor_command(service_request);
    }
    
    return 0;
@@ -86,7 +93,7 @@ int main(int argc, char **argv)
 
 
 
-void motor_command(void)
+void motor_command(motor_cam_tutorial::image_cmd service_request)
 {
   my_dynamixel_controller::MsgDynamixel msg;
   
@@ -94,6 +101,8 @@ void motor_command(void)
   
   ros::Publisher dynamixel_publisher = nh.advertise<my_dynamixel_controller::MsgDynamixel>("tilt_controller/command", 100); 
   ros::Subscriber dynamixel_subscriber = nh.subscribe("tilt_controller/state", 100, msgCallback);
+  
+  ros::ServiceClient ros_tutorials_service_client = nh.serviceClient<motor_cam_tutorial::image_cmd>("image_cmd");
   
  
  switch(MX28.Estado)
@@ -108,8 +117,13 @@ void motor_command(void)
     case 2:
      if(MX28.motor_position[START] - MX28.motor_state[CURRENT_POS] <= ERROR_POS)
      {
-      //Tira foto
-      MX28.Estado = 3;
+      service_request.request.angle = MX28.motor_state[CURRENT_POS];  
+      if(ros_tutorials_service_client.call(service_request) == 1)MX28.Estado = 3;
+      else 
+      {
+	   std::cout<<"Service return = "<<service_request.response.result<<std::endl;
+	   MX28.Estado = 2;
+      }
      }else MX28.Estado = 1;
     break;
 
@@ -124,7 +138,8 @@ void motor_command(void)
    case 4: 
     if(MX28.motor_position[HALF_PI] - MX28.motor_state[CURRENT_POS] <= ERROR_POS) 
       {
-      //Tira foto
+       //service_request.angle = MX28.motor_state[CURRENT_POS];  
+      //ros_tutorials_service_client.call(service_request);
       MX28.Estado = 5;
      }else MX28.Estado = 3;
    break;
@@ -139,7 +154,8 @@ void motor_command(void)
   case 6:   
     if(MX28.motor_position[PI] - MX28.motor_state[CURRENT_POS] <= ERROR_POS) 
      {
-     //Tira foto
+      //service_request.angle = MX28.motor_state[CURRENT_POS];  
+      //ros_tutorials_service_client.call(service_request);
       MX28.Estado = 7;
      }else MX28.Estado = 5;
   break;
@@ -154,7 +170,8 @@ void motor_command(void)
   case 8:    
    if(MX28.motor_position[PI_HALF] - MX28.motor_state[CURRENT_POS] <= ERROR_POS) 
      {
-     //Tira foto
+      //service_request.angle = MX28.motor_state[CURRENT_POS];  
+      //ros_tutorials_service_client.call(service_request);
       MX28.Estado = 9;
      }else MX28.Estado = 7;
   break;
@@ -169,7 +186,8 @@ void motor_command(void)
   case 10:
     if(MX28.motor_position[TWO_PI] - MX28.motor_state[CURRENT_POS] <= ERROR_POS) 
      {
-     //Tira foto
+      //service_request.angle = MX28.motor_state[CURRENT_POS];  
+      //ros_tutorials_service_client.call(service_request);
       MX28.Estado = 1;
      }else MX28.Estado = 9;
   break;
