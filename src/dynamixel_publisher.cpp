@@ -24,7 +24,7 @@
 
 
 void motor_command(motor_cam_tutorial::image_cmd service_request);
-void motor_init(float qtd_pos);
+bool motor_init(float qtd_pos);
 
 struct Motor{
  float motor_state[4], count, motor_position[5], pos;
@@ -32,17 +32,17 @@ struct Motor{
  bool moving;
 }MX28;
 
-void motor_init(float qtd_pos)
+bool motor_init(float qtd_pos)
 {
  
- if(qtd_pos > 6.14 || qtd_pos <= 0){
-  ROS_ERROR("Value should be between 0 and 6.14");
-  return;
+ if(qtd_pos > 10 || qtd_pos <= 0){
+  ROS_ERROR("Qtd_pos value should be between 0 and 6.14");
+  return false;
  }
  MX28.Estado = TX; 
  MX28.count = 0;
  MX28.pos = 6.14/qtd_pos;
- return;
+ return true;
 }
 
 void msgCallback(const dynamixel_msgs::JointState::ConstPtr& msg)
@@ -52,8 +52,7 @@ void msgCallback(const dynamixel_msgs::JointState::ConstPtr& msg)
    MX28.motor_state[ERROR] = msg->error;
    MX28.motor_state[LOAD] = msg->load;
    MX28.moving = msg->is_moving;   
-
-
+  
    ROS_INFO("Goal Position = %f", msg->goal_pos);	 
    ROS_INFO("Current Position = %f", msg->current_pos); 
    ROS_INFO("Error = %f", msg->error); 
@@ -73,7 +72,7 @@ int main(int argc, char **argv)
   float qtd_pos;
   nh.param("Qtd_Pos", qtd_pos, qtd_pos);
    
-  motor_init(qtd_pos);
+  if(!motor_init(qtd_pos)) return 0;
 
   ros::Publisher dynamixel_publisher = nh.advertise<my_dynamixel_controller::MsgDynamixel>("tilt_controller/command", 100); 
   ros::Subscriber dynamixel_subscriber = nh.subscribe("tilt_controller/state", 100, msgCallback);
@@ -81,9 +80,7 @@ int main(int argc, char **argv)
   motor_cam_tutorial::image_cmd service_request;
   service_request.request.cmd = true;
   service_request.request.angle = 0.0;
-  service_request.request.path = "/home/everton/";
-
-  
+  service_request.request.path = "/home/everton/motor_cam/";
   
   ros::Rate loop_rate(0.2); // Set the loop period (Hz)
   	
