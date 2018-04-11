@@ -19,25 +19,29 @@
 #define TWO_PI 4
 #define ERROR_POS 0.01
 
+#define TX 0
+#define RX 1
+
+
 void motor_command(motor_cam_tutorial::image_cmd service_request);
-void motor_init(float pos1, float pos2, float pos3, float pos4, float pos5);
+void motor_init(float qtd_pos);
 
 struct Motor{
- float motor_state[4], count, motor_position[5];
+ float motor_state[4], count, motor_position[5], pos;
  int Estado;
  bool moving;
 }MX28;
 
-void motor_init(float pos1, float pos2, float pos3, float pos4, float pos5)
+void motor_init(float qtd_pos)
 {
- MX28.Estado = 1; 
- MX28.count = 0;
- MX28.motor_position[0] = pos1;
- MX28.motor_position[1] = pos2;
- MX28.motor_position[2] = pos3;
- MX28.motor_position[3] = pos4;
- MX28.motor_position[4] = pos5; 
  
+ if(qtd_pos > 6.14 || qtd_pos <= 0){
+  ROS_ERROR("Value should be between 0 and 6.14");
+  return;
+ }
+ MX28.Estado = TX; 
+ MX28.count = 0;
+ MX28.pos = 6.14/qtd_pos;
  return;
 }
 
@@ -61,12 +65,15 @@ int main(int argc, char **argv)
 {
   //my_dynamixel_controller::MsgDynamixel msg;
   
-  motor_init(0,1.57,3.14,4.71,6.28);
-
   ros::init(argc, argv, "dynamixel_publisher");	
   ros::init(argc, argv, "dynamixel_subscriber");
     
   ros::NodeHandle nh;	
+
+  float qtd_pos;
+  nh.param("Qtd_Pos", qtd_pos, qtd_pos);
+   
+  motor_init(qtd_pos);
 
   ros::Publisher dynamixel_publisher = nh.advertise<my_dynamixel_controller::MsgDynamixel>("tilt_controller/command", 100); 
   ros::Subscriber dynamixel_subscriber = nh.subscribe("tilt_controller/state", 100, msgCallback);
@@ -74,7 +81,7 @@ int main(int argc, char **argv)
   motor_cam_tutorial::image_cmd service_request;
   service_request.request.cmd = true;
   service_request.request.angle = 0.0;
-  service_request.request.path = "./";
+  service_request.request.path = "/home/everton/";
 
   
   
@@ -104,94 +111,28 @@ void motor_command(motor_cam_tutorial::image_cmd service_request)
   
   ros::ServiceClient ros_tutorials_service_client = nh.serviceClient<motor_cam_tutorial::image_cmd>("image_cmd");
   
- 
- switch(MX28.Estado)
- {
-   case 1:
-    msg.data = MX28.motor_position[START]; 
+  switch(MX28.Estado)
+  {
+   case TX:
+    msg.data = MX28.count; 
     dynamixel_publisher.publish(msg);
-    ROS_INFO("send msg = %f", msg.data); 
-    MX28.Estado = 2;
-   break;
-  
-    case 2:
-     if(MX28.motor_position[START] - MX28.motor_state[CURRENT_POS] <= ERROR_POS)
+    ROS_INFO("send msg = %f", msg.data);		 
+    MX28.Estado = RX;
+   break;		
+		
+   case RX:
+    if(MX28.count - MX28.motor_state[CURRENT_POS] <= ERROR_POS)
+    {
+     service_request.request.angle = MX28.count;
+     if(ros_tutorials_service_client.call(service_request) == 1)
      {
-      service_request.request.angle = MX28.motor_state[CURRENT_POS];  
-      if(ros_tutorials_service_client.call(service_request) == 1)MX28.Estado = 3;
-      else 
-      {
-	   std::cout<<"Service return = "<<service_request.response.result<<std::endl;
-	   MX28.Estado = 2;
-      }
-     }else MX28.Estado = 1;
-    break;
-
-
-   case 3:
-    msg.data = MX28.motor_position[HALF_PI]; 
-    dynamixel_publisher.publish(msg);
-    ROS_INFO("send msg = %f", msg.data);
-    MX28.Estado= 4;
-   break;
-
-   case 4: 
-    if(MX28.motor_position[HALF_PI] - MX28.motor_state[CURRENT_POS] <= ERROR_POS) 
-      {
-       //service_request.angle = MX28.motor_state[CURRENT_POS];  
-      //ros_tutorials_service_client.call(service_request);
-      MX28.Estado = 5;
-     }else MX28.Estado = 3;
-   break;
-
-  case 5:
-    msg.data = MX28.motor_position[PI]; 
-    dynamixel_publisher.publish(msg);
-    ROS_INFO("send msg = %f", msg.data);
-    MX28.Estado = 6;
-  break;
-
-  case 6:   
-    if(MX28.motor_position[PI] - MX28.motor_state[CURRENT_POS] <= ERROR_POS) 
-     {
-      //service_request.angle = MX28.motor_state[CURRENT_POS];  
-      //ros_tutorials_service_client.call(service_request);
-      MX28.Estado = 7;
-     }else MX28.Estado = 5;
-  break;
- 
-  case 7:
-    msg.data = MX28.motor_position[PI_HALF]; 
-    dynamixel_publisher.publish(msg);
-    ROS_INFO("send msg = %f", msg.data);
-    MX28.Estado = 8;
-  break;
-
-  case 8:    
-   if(MX28.motor_position[PI_HALF] - MX28.motor_state[CURRENT_POS] <= ERROR_POS) 
-     {
-      //service_request.angle = MX28.motor_state[CURRENT_POS];  
-      //ros_tutorials_service_client.call(service_request);
-      MX28.Estado = 9;
-     }else MX28.Estado = 7;
-  break;
-
-  case 9:
-    msg.data = MX28.motor_position[TWO_PI]; 
-    dynamixel_publisher.publish(msg);
-    ROS_INFO("send msg = %f", msg.data);
-    MX28.Estado = 10;
-  break;
-
-  case 10:
-    if(MX28.motor_position[TWO_PI] - MX28.motor_state[CURRENT_POS] <= ERROR_POS) 
-     {
-      //service_request.angle = MX28.motor_state[CURRENT_POS];  
-      //ros_tutorials_service_client.call(service_request);
-      MX28.Estado = 1;
-     }else MX28.Estado = 9;
-  break;
-  }	
+     MX28.count += MX28.pos;
+     if(MX28.count >= 6.14) MX28.count = 0;
+     MX28.Estado = TX;  	 
+     }else MX28.Estado = RX;	 
+    }else MX28.Estado = TX; 	 
+   break;		
+  }		
 
 } 
 
