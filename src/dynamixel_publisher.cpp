@@ -27,7 +27,7 @@ void motor_command(motor_cam_tutorial::image_cmd service_request);
 bool motor_init(float qtd_pos);
 
 struct Motor{
- float motor_state[4], count, motor_position[5], pos;
+ float motor_state[4], count, pos;
  int Estado;
  bool moving;
 }MX28;
@@ -123,11 +123,11 @@ void motor_command(motor_cam_tutorial::image_cmd service_request)
      service_request.request.angle = MX28.count;
      if(ros_tutorials_service_client.call(service_request) == 1)
      {
-     MX28.count += MX28.pos;
-     if(MX28.count >= 6.14) MX28.count = 0;
-     MX28.Estado = TX;  	 
-     }else MX28.Estado = RX;	 
-    }else MX28.Estado = TX; 	 
+      MX28.count += MX28.pos;
+      if(MX28.count >= 6.14) MX28.count = 0;
+      MX28.Estado = TX;  	 
+      }else MX28.Estado = RX;	 
+     }else MX28.Estado = TX; 	 
    break;		
   }		
 
