@@ -24,7 +24,7 @@
 #define RX 1
 
 
-void motor_command(motor_cam_tutorial::image_cmd service_request);
+void motor_command(motor_cam_tutorial::image_cmd service_request, ros::Publisher dynamixel_publisher);
 bool motor_init(float qtd_pos);
 
 struct Motor{
@@ -37,24 +37,24 @@ struct Motor{
 bool motor_init(float qtd_pos)
 {
   if(qtd_pos > 50 || qtd_pos <= 0){
-  ROS_ERROR("Qtd_pos value should be between 0 and 6.14");
-  return false;
+   ROS_ERROR("Qtd_pos value should be between 0 and 6.14");
+   return false;
   }
- MX28.Estado = TX; 
- MX28.count = 0.0;
- MX28.pos = 6.14/qtd_pos;
- return true;
+  MX28.Estado = TX; 
+  MX28.count = 0;
+  MX28.pos = 6.14/qtd_pos;
+  return true;
 }
 
 void msgCallback(const dynamixel_msgs::JointState::ConstPtr& msg)
 {   
-   MX28.motor_state[GOAL_POS] = msg->goal_pos;
-   MX28.motor_state[CURRENT_POS] = msg->current_pos;
-   MX28.motor_state[ERROR] = msg->error;
-   MX28.motor_state[LOAD] = msg->load;
-   MX28.moving = msg->is_moving;   
-  
-   /*ROS_INFO("Goal Position = %f", msg->goal_pos);	 
+ MX28.motor_state[GOAL_POS] = msg->goal_pos;
+ MX28.motor_state[CURRENT_POS] = msg->current_pos;
+ MX28.motor_state[ERROR] = msg->error;
+ MX28.motor_state[LOAD] = msg->load;
+ MX28.moving = msg->is_moving;   
+ 
+ /*ROS_INFO("Goal Position = %f", msg->goal_pos);	 
    ROS_INFO("Current Position = %f", msg->current_pos); 
    ROS_INFO("Error = %f", msg->error); 
    ROS_INFO("Moving = %i", msg->is_moving);*/
@@ -83,15 +83,14 @@ int main(int argc, char **argv)
   service_request.request.angle = 0.0;
   service_request.request.path = "/home/everton/motor_cam/";
   
-  ROS_INFO("Counter = %f", MX28.count);
-  ros::Rate loop_rate(60); // Set the loop period (Hz)
+  ros::Rate loop_rate(5); // Set the loop period (Hz)
   	
   //ros::spinOnce();
   
    while (ros::ok()){	
     loop_rate.sleep();		  
     ros::spinOnce();
-    motor_command(service_request);
+    motor_command(service_request, dynamixel_publisher);
    }
    
    return 0;
@@ -99,19 +98,14 @@ int main(int argc, char **argv)
 
 
 
-void motor_command(motor_cam_tutorial::image_cmd service_request)
+void motor_command(motor_cam_tutorial::image_cmd service_request, ros::Publisher dynamixel_publisher)
 {
   ros::NodeHandle nh;	
-  
-  ros::Publisher dynamixel_publisher = nh.advertise<my_dynamixel_controller::MsgDynamixel>("tilt_controller/command", 100); 
-  ros::Subscriber dynamixel_subscriber = nh.subscribe("tilt_controller/state", 100, msgCallback);
-  
   ros::ServiceClient ros_tutorials_service_client = nh.serviceClient<motor_cam_tutorial::image_cmd>("image_cmd");
   
   switch(MX28.Estado)
   {
    case TX:
-    ROS_INFO("Counter = %f", MX28.count);
     MX28.msg.data = MX28.count; 
     dynamixel_publisher.publish(MX28.msg);
     ROS_INFO("send msg = %f", MX28.msg.data);		 
@@ -121,7 +115,6 @@ void motor_command(motor_cam_tutorial::image_cmd service_request)
    case RX:
     if((MX28.count - MX28.motor_state[CURRENT_POS] <= ERROR_POS) && (MX28.count - MX28.motor_state[CURRENT_POS] >= ERROR_NEG))
     {
-     ROS_INFO("Position = %f", MX28.count - MX28.motor_state[CURRENT_POS]);
      service_request.request.angle = MX28.count;
      if(ros_tutorials_service_client.call(service_request) == 1)
      {
@@ -132,7 +125,6 @@ void motor_command(motor_cam_tutorial::image_cmd service_request)
      }else MX28.Estado = TX; 	 
    break;		
   }		
-
 } 
 
 
