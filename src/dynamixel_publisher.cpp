@@ -65,7 +65,6 @@ int main(int argc, char **argv)
 { 
   ros::init(argc, argv, "dynamixel_publisher");	
   ros::init(argc, argv, "dynamixel_subscriber");
-    
   ros::NodeHandle nh;	
 
   float qtd_pos;
