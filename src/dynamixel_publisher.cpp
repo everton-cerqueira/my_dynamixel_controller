@@ -95,7 +95,6 @@ int main(int argc, char **argv)
 }
 
 
-
 void motor_command(motor_cam_tutorial::image_cmd service_request, ros::Publisher dynamixel_publisher)
 {
   ros::NodeHandle nh;	
