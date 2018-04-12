@@ -17,8 +17,8 @@
 #define PI 2
 #define PI_HALF 3
 #define TWO_PI 4
-#define ERROR_POS 0.01
-#define ERROR_NEG -0.01
+#define ERROR_POS 0.05
+#define ERROR_NEG -0.05
 
 #define TX 0
 #define RX 1
@@ -62,9 +62,7 @@ void msgCallback(const dynamixel_msgs::JointState::ConstPtr& msg)
 
 
 int main(int argc, char **argv)
-{
-  //my_dynamixel_controller::MsgDynamixel msg;
-  
+{ 
   ros::init(argc, argv, "dynamixel_publisher");	
   ros::init(argc, argv, "dynamixel_subscriber");
     
@@ -108,13 +106,14 @@ void motor_command(motor_cam_tutorial::image_cmd service_request, ros::Publisher
    case TX:
     MX28.msg.data = MX28.count; 
     dynamixel_publisher.publish(MX28.msg);
-    ROS_INFO("send msg = %f", MX28.msg.data);		 
+    ROS_INFO("Send Position = %f", MX28.msg.data);		 
     MX28.Estado = RX;
    break;		
 		
    case RX:
     if((MX28.count - MX28.motor_state[CURRENT_POS] <= ERROR_POS) && (MX28.count - MX28.motor_state[CURRENT_POS] >= ERROR_NEG))
     {
+     ROS_INFO("Current Position = %f", MX28.motor_state[CURRENT_POS]); 
      service_request.request.angle = MX28.count;
      if(ros_tutorials_service_client.call(service_request) == 1)
      {
