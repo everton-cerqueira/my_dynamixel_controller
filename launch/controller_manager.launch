@@ -20,6 +20,11 @@
                 --port pan_tilt_port
                 tilt_controller"
           output="screen"/>
+  <node pkg="motor_cam_tutorial" type="controller" name="cam_controller" output="screen"/>
+  <node pkg="motor_cam_tutorial" type="cam_pub" name="cam_pub" output="screen"/>
+  <param name="cam_device" value="0" type="int"/>  
+  <param name="Qtd_Pos" value="30" type="int"/> 
+  <node pkg="my_dynamixel_controller" type="dynamixel_publisher" name="motor_controller" output="screen"/> 
 </launch>
 
 

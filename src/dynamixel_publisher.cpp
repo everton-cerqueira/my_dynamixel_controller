@@ -43,6 +43,9 @@ bool motor_init(float qtd_pos)
   MX28.Estado = TX; 
   MX28.count = 0;
   MX28.pos = 6.14/qtd_pos;
+  for(int i = 0; i < 4; i++) MX28.motor_state[i] = 0xff;
+  MX28.moving = false;
+  MX28.msg.data = 0;   
   return true;
 }
 
@@ -113,7 +116,8 @@ void motor_command(motor_cam_tutorial::image_cmd service_request, ros::Publisher
     {
      ROS_INFO("Current Position = %f", MX28.motor_state[CURRENT_POS]); 
      service_request.request.angle = MX28.count;
-     if(ros_tutorials_service_client.call(service_request) == 1)
+     ros_tutorials_service_client.call(service_request);
+     if(service_request.response.result == 1)
      {
       MX28.count += MX28.pos;
       if(MX28.count >= 6.14) MX28.count = 0;
